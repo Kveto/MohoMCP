@@ -11,8 +11,8 @@ import path from "node:path";
 import os from "node:os";
 import { MohoClient } from "./moho-client.js";
 import { config } from "./config.js";
-import { captureAppWindow } from "./window-capture.js";
-import { sendMouseClick, sendMouseDrag, sendKeys } from "./win32-input.js";
+import { captureAppWindow } from "./platform-capture.js";
+import { sendMouseClick, sendMouseDrag, sendKeys } from "./platform-input.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -603,7 +603,7 @@ export function registerTools(server: McpServer, client: MohoClient): void {
         .enum(["scene", "full"])
         .optional()
         .describe(
-          '"scene" = rendered animation frame only (default), "full" = entire MOHO application window via Win32 capture',
+          '"scene" = rendered animation frame only (default), "full" = entire MOHO application window via native screen capture',
         ),
       frame: z
         .number()

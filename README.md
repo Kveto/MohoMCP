@@ -7,7 +7,7 @@ An MCP (Model Context Protocol) server for **Moho Pro 14** — enabling AI assis
 ```
 ┌─────────────────────┐    File-based IPC     ┌──────────────────────┐
 │  MCP Bridge Server  │◄──────────────────►   │  Moho Lua Plugin     │
-│  (TypeScript/Node)  │  %TEMP%\moho-mcp\     │  (runs inside MOHO)  │
+│  (TypeScript/Node)  │  $TMPDIR/moho-mcp/    │  (runs inside MOHO)  │
 └────────┬────────────┘   JSON-RPC 2.0        └──────────────────────┘
          │ MCP Protocol (stdio)
 ┌────────▼────────────┐
@@ -94,11 +94,13 @@ An MCP (Model Context Protocol) server for **Moho Pro 14** — enabling AI assis
 
 ### 1. Install the MOHO Plugin
 
-Copy the `moho-plugin/` contents into MOHO's scripts folder:
+Copy the `moho-plugin/` contents into MOHO's scripts folder, or use the provided install scripts:
 
-**Windows:** `C:\Program Files\Moho 14\Resources\Support\Scripts\Menu\`
+**Windows:** Run `install-plugin.bat` (or copy manually to `C:\Program Files\Moho 14\Resources\Support\Scripts\Menu\`)
 
-Copy these files/folders:
+**macOS:** Run `chmod +x install-plugin.sh && ./install-plugin.sh` (or copy manually to `/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Menu/`)
+
+Files to copy:
 - `MohoMCP_Server.lua`
 - `MohoMCP_Poller.lua`
 - `json.lua`
@@ -154,7 +156,7 @@ Environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MOHO_MCP_IPC_DIR` | `%TEMP%\moho-mcp` | Directory for file-based IPC communication |
+| `MOHO_MCP_IPC_DIR` | `<system-temp>/moho-mcp` | Directory for file-based IPC communication |
 
 Internal timing (in `bridge/src/config.ts`):
 
@@ -170,16 +172,18 @@ Internal timing (in `bridge/src/config.ts`):
 
 ### File-Based IPC
 
-Communication uses JSON files in `%TEMP%\moho-mcp\`:
+Communication uses JSON files in the system temp directory (`%TEMP%\moho-mcp\` on Windows, `$TMPDIR/moho-mcp/` on macOS):
 
 1. Bridge writes `req_<id>.json` (JSON-RPC 2.0 request)
 2. MOHO Lua plugin polls for request files via DrawMe/IsEnabled callbacks
 3. Lua processes the request, writes `resp_<id>.json`
 4. Bridge reads the response, cleans up files
 
-### Keep-Alive Mechanism (Windows)
+### Keep-Alive Mechanism
 
-MOHO only processes Lua callbacks during UI repaints. A background PowerShell process periodically calls Win32 `RedrawWindow()` on the MOHO window (~4 Hz) to keep the polling loop alive even when the user isn't interacting.
+MOHO only processes Lua callbacks during UI repaints. A background process periodically forces viewport redraws (~4 Hz) to keep the polling loop alive even when the user isn't interacting:
+- **Windows:** PowerShell process calling Win32 `RedrawWindow()`
+- **macOS:** AppleScript process nudging the Moho application
 
 ### Security
 
@@ -209,9 +213,13 @@ MohoMCP/
 │       ├── protocol.ts        # JSON-RPC 2.0 types
 │       ├── tools.ts           # 26 MCP tool registrations
 │       ├── resources.ts       # Static knowledge resources
-│       ├── keep-alive.ts      # Win32 viewport refresh
+│       ├── keep-alive.ts      # Cross-platform viewport refresh
+│       ├── platform-capture.ts # Platform dispatch → window capture
+│       ├── platform-input.ts  # Platform dispatch → input simulation
 │       ├── window-capture.ts  # Win32 screenshot capture
-│       ├── win32-input.ts     # Mouse & keyboard automation
+│       ├── darwin-capture.ts  # macOS screenshot capture
+│       ├── win32-input.ts     # Win32 mouse & keyboard
+│       ├── darwin-input.ts    # macOS mouse & keyboard
 │       └── __tests__/         # Vitest test suite
 │
 ├── moho-plugin/               # Lua Plugin for MOHO 14
@@ -242,7 +250,8 @@ MohoMCP/
 
 - **Moho Pro 14** (Lua 5.4 scripting)
 - **Node.js** >= 18.0.0
-- **Windows 10/11** (for screenshot and input tools — read/write tools work cross-platform)
+- **Windows 10/11** or **macOS** (all features supported on both platforms)
+- **macOS extras:** `cliclick` is optional but recommended for reliable mouse input (`brew install cliclick`). Accessibility permissions required for input simulation (System Settings > Privacy & Security > Accessibility).
 
 ## License
 

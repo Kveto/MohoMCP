@@ -62,9 +62,9 @@ describe("registerTools", () => {
     ).not.toThrow();
   });
 
-  it("registers exactly 25 tools", () => {
+  it("registers exactly 26 tools", () => {
     registerTools(mockServer as unknown as Parameters<typeof registerTools>[0], client);
-    expect(mockServer.tools).toHaveLength(25);
+    expect(mockServer.tools).toHaveLength(26);
   });
 
   it("registers all expected tool names", () => {

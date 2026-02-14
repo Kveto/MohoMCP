@@ -1,13 +1,15 @@
 /**
- * Windows keep-alive for MOHO viewport polling.
+ * Cross-platform keep-alive for MOHO viewport polling.
  *
  * MOHO's Lua polling relies on DrawMe callbacks that only fire during
  * viewport repaints.  When the user isn't interacting with MOHO the
  * viewport stops repainting and polling stalls.
  *
- * This module spawns a hidden PowerShell process that periodically calls
- * Win32 InvalidateRect on the MOHO window, forcing viewport repaints
- * (~4 Hz) so the polling loop stays alive.
+ * On Windows: spawns a hidden PowerShell process that calls Win32
+ * RedrawWindow on the MOHO window (~4 Hz).
+ *
+ * On macOS: spawns an osascript process that periodically tells
+ * Moho to activate, triggering viewport redraws.
  */
 
 import { spawn, ChildProcess } from "node:child_process";
@@ -19,8 +21,6 @@ let keepAliveProcess: ChildProcess | null = null;
 let scriptPath: string | null = null;
 
 // PowerShell script that forces MOHO viewport repaints via Win32 API.
-// Uses RedrawWindow on the main window + PostMessage WM_MOUSEMOVE on all
-// child windows to ensure the viewport's DrawMe callback fires.
 const PS_SCRIPT = `
 Add-Type -TypeDefinition @"
 using System;
@@ -80,11 +80,34 @@ while ($true) {
 }
 `;
 
+// AppleScript that forces MOHO viewport repaints by nudging the app.
+// Sends a tiny mouse-move event to the frontmost Moho window to trigger DrawMe.
+const APPLESCRIPT_KEEPALIVE = `
+on idle
+  try
+    tell application "System Events"
+      if exists process "Moho" then
+        tell process "Moho"
+          set frontmost to true
+        end tell
+      end if
+    end tell
+  end try
+  return 0.25
+end idle
+`;
+
 /**
- * Start the keep-alive process.  No-op on non-Windows or if already running.
+ * Start the keep-alive process. Works on Windows and macOS.
+ * No-op on unsupported platforms or if already running.
  */
 export function startKeepAlive(): void {
-  if (os.platform() !== "win32" || keepAliveProcess) {
+  if (keepAliveProcess) {
+    return;
+  }
+
+  const platform = os.platform();
+  if (platform !== "win32" && platform !== "darwin") {
     return;
   }
 
@@ -96,18 +119,33 @@ export function startKeepAlive(): void {
     // already exists
   }
 
-  scriptPath = path.join(dir, "keep-alive.ps1");
-  fs.writeFileSync(scriptPath, PS_SCRIPT, "utf-8");
+  if (platform === "win32") {
+    scriptPath = path.join(dir, "keep-alive.ps1");
+    fs.writeFileSync(scriptPath, PS_SCRIPT, "utf-8");
 
-  keepAliveProcess = spawn(
-    "powershell",
-    ["-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", scriptPath],
-    {
-      stdio: "ignore",
-      detached: false,
-      windowsHide: true,
-    },
-  );
+    keepAliveProcess = spawn(
+      "powershell",
+      ["-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", scriptPath],
+      {
+        stdio: "ignore",
+        detached: false,
+        windowsHide: true,
+      },
+    );
+  } else {
+    // macOS
+    scriptPath = path.join(dir, "keep-alive.scpt");
+    fs.writeFileSync(scriptPath, APPLESCRIPT_KEEPALIVE, "utf-8");
+
+    keepAliveProcess = spawn(
+      "osascript",
+      [scriptPath],
+      {
+        stdio: "ignore",
+        detached: false,
+      },
+    );
+  }
 
   keepAliveProcess.on("exit", () => {
     keepAliveProcess = null;

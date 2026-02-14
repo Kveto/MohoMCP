@@ -269,9 +269,15 @@ function document.screenshot(moho, params)
     end
 
     -- Build unique temp file path
-    local tempDir = os.getenv("TEMP") or os.getenv("TMP") or "/tmp"
-    local mcpDir = tempDir .. "/moho-mcp"
-    os.execute('mkdir "' .. mcpDir .. '" 2>NUL')
+    local tempDir = os.getenv("TEMP") or os.getenv("TMP") or os.getenv("TMPDIR") or "/tmp"
+    local sep = package.config:sub(1, 1)
+    local mcpDir = tempDir .. sep .. "moho-mcp"
+    -- Platform-aware mkdir (no visible window)
+    if sep == "\\" then
+        io.popen('cmd /c mkdir "' .. mcpDir .. '" 2>NUL'):close()
+    else
+        io.popen('mkdir -p "' .. mcpDir .. '" 2>/dev/null'):close()
+    end
 
     local timestamp = tostring(os.clock()):gsub("%.", "_")
     local tempPath = mcpDir .. "/render_" .. timestamp .. ".png"
