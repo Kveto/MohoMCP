@@ -1,0 +1,30 @@
+{
+  "name": "moho-mcp",
+  "version": "0.1.0",
+  "description": "MCP bridge server for MOHO 14 animation software",
+  "main": "dist/index.js",
+  "bin": {
+    "moho-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@rollup/rollup-win32-x64-msvc": "^4.57.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

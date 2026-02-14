@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+bridge/dist/
+*.js.map
+*.d.ts.map
+
+# Environment & secrets
+.env
+.env.*
+
+# Claude Code local settings (contains local paths & permissions)
+.claude/settings.local.json
+
+# MCP config (contains absolute local paths)
+.mcp.json
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp / test scripts
+*.ps1
+!bridge/test-keep-alive.ps1
+
+# Internal / private documents
+*.docx

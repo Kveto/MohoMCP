@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MohoMCP Tool Definitions",
+  "description": "JSON Schema definitions for all MohoMCP tools (Phase 1 MVP)",
+  "version": "0.1.0",
+  "tools": {
+    "document.getInfo": {
+      "description": "Get information about the currently open MOHO document",
+      "params": {},
+      "result": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "filePath": { "type": "string" },
+          "width": { "type": "number" },
+          "height": { "type": "number" },
+          "fps": { "type": "number" },
+          "startFrame": { "type": "number" },
+          "endFrame": { "type": "number" },
+          "currentFrame": { "type": "number" }
+        }
+      }
+    },
+    "document.getLayers": {
+      "description": "Get a hierarchical list of all layers in the document",
+      "params": {},
+      "result": {
+        "type": "object",
+        "properties": {
+          "layers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "number" },
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "visible": { "type": "boolean" },
+                "locked": { "type": "boolean" },
+                "parentId": { "type": ["number", "null"] },
+                "children": { "type": "array" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "layer.getProperties": {
+      "description": "Get detailed properties of a specific layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "visible": { "type": "boolean" },
+          "locked": { "type": "boolean" },
+          "opacity": { "type": "number" },
+          "blendMode": { "type": "string" },
+          "transform": { "type": "object" }
+        }
+      }
+    },
+    "layer.getChildren": {
+      "description": "Get child layers of a group layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID of the group" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "children": { "type": "array" }
+        }
+      }
+    },
+    "layer.getBones": {
+      "description": "Get all bones in a bone layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID of the bone layer" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "boneCount": { "type": "number" },
+          "bones": { "type": "array" }
+        }
+      }
+    },
+    "bone.getProperties": {
+      "description": "Get detailed properties of a specific bone",
+      "params": {
+        "type": "object",
+        "required": ["layerId", "boneId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID of the bone layer" },
+          "boneId": { "type": "number", "description": "Bone index within the layer" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "position": { "type": "object" },
+          "angle": { "type": "number" },
+          "scale": { "type": "number" },
+          "length": { "type": "number" },
+          "parentId": { "type": "number" },
+          "constraints": { "type": "object" }
+        }
+      }
+    },
+    "animation.getKeyframes": {
+      "description": "Get keyframe data for a specific animation channel on a layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId", "channel"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID" },
+          "channel": { "type": "string", "description": "Channel name: translation, rotation, scale, opacity, shear" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "channel": { "type": "string" },
+          "keyCount": { "type": "number" },
+          "keyframes": { "type": "array" }
+        }
+      }
+    },
+    "animation.getFrameState": {
+      "description": "Get the full animation state of a layer at a specific frame",
+      "params": {
+        "type": "object",
+        "required": ["layerId", "frame"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID" },
+          "frame": { "type": "number", "description": "Frame number to query" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "frame": { "type": "number" },
+          "translation": { "type": "object" },
+          "rotation": { "type": "number" },
+          "scale": { "type": "object" },
+          "opacity": { "type": "number" },
+          "visible": { "type": "boolean" }
+        }
+      }
+    },
+    "mesh.getPoints": {
+      "description": "Get all mesh points (vertices) in a vector layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID of the vector layer" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "pointCount": { "type": "number" },
+          "points": { "type": "array" }
+        }
+      }
+    },
+    "mesh.getShapes": {
+      "description": "Get all shapes (filled regions) in a vector layer",
+      "params": {
+        "type": "object",
+        "required": ["layerId"],
+        "properties": {
+          "layerId": { "type": "number", "description": "Absolute layer ID of the vector layer" }
+        }
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "layerId": { "type": "number" },
+          "shapeCount": { "type": "number" },
+          "shapes": { "type": "array" }
+        }
+      }
+    }
+  }
+}

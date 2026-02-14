@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "moho-mcp": {
+      "command": "node",
+      "args": [
+        "<ABSOLUTE_PATH_TO_REPO>/bridge/dist/index.js"
+      ]
+    }
+  }
+}
