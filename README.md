@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server for **Moho Pro 14** — enabling AI assistants like Claude Desktop and Claude Code to read, write, animate, and visually operate MOHO animation projects.
 
+**Fully cross-platform: Windows and macOS.**
+
 ## Architecture
 
 ```
@@ -246,12 +248,34 @@ MohoMCP/
     └── tools.json             # JSON Schema definitions
 ```
 
-## Requirements
+## Platform Support
 
-- **Moho Pro 14** (Lua 5.4 scripting)
+All 26 tools work identically on both platforms. The bridge auto-detects the OS at runtime and loads the appropriate native backend — no configuration needed.
+
+| Feature | Windows | macOS |
+|---------|---------|-------|
+| Read tools (document, layers, bones, mesh) | Win32 file IPC | POSIX file IPC |
+| Write tools (transforms, keyframes) | Win32 file IPC | POSIX file IPC |
+| Scene screenshot (`mode="scene"`) | Moho FileRender | Moho FileRender |
+| Full UI screenshot (`mode="full"`) | Win32 PrintWindow API | `screencapture -l` |
+| Mouse input (click, drag) | Win32 user32.dll P/Invoke | cliclick / CoreGraphics via JXA |
+| Keyboard input | Win32 keybd_event | AppleScript System Events |
+| Keep-alive (viewport refresh) | PowerShell + RedrawWindow | AppleScript process nudge |
+| Plugin installer | `install-plugin.bat` | `install-plugin.sh` |
+
+### Windows Requirements
+
+- **Windows 10/11**
+- **Moho Pro 14**
 - **Node.js** >= 18.0.0
-- **Windows 10/11** or **macOS** (all features supported on both platforms)
-- **macOS extras:** `cliclick` is optional but recommended for reliable mouse input (`brew install cliclick`). Accessibility permissions required for input simulation (System Settings > Privacy & Security > Accessibility).
+
+### macOS Requirements
+
+- **macOS** (tested on Ventura+)
+- **Moho Pro 14**
+- **Node.js** >= 18.0.0
+- **Accessibility permissions** — required for input simulation (System Settings > Privacy & Security > Accessibility > add your terminal / Claude Desktop)
+- **cliclick** (optional, recommended) — `brew install cliclick` — provides more reliable mouse input. Without it, falls back to CoreGraphics via JXA.
 
 ## License
 
