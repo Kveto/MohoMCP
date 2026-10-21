@@ -4,40 +4,33 @@ echo " MohoMCP Plugin Installer (macOS)"
 echo "============================================"
 echo ""
 
-DEST="/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Menu/MohoMCP"
-TOOL_DEST="/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Tool"
+# Usage: ./install-plugin.sh ["/path/to/Moho Pro.app"]
+MOHO_APP="${1:-/Applications/Moho 14/Moho Pro.app}"
+SCRIPTS="$MOHO_APP/Contents/Resources/Support/Scripts"
+MENU_DEST="$SCRIPTS/Menu/MohoMCP"
+MODULE_DEST="$SCRIPTS/Modules/moho_mcp"
+TOOL_DEST="$SCRIPTS/Tool"
 SRC="$(cd "$(dirname "$0")" && pwd)/moho-plugin"
 
-# Check if Moho is installed
-if [ ! -d "/Applications/Moho 14" ]; then
-    echo "ERROR: Moho 14 not found at /Applications/Moho 14/"
-    echo "Please update the DEST and TOOL_DEST paths in this script."
+echo "Moho scripts folder: $SCRIPTS"
+echo ""
+if [ ! -f "$TOOL_DEST/_tool_list.txt" ]; then
+    echo "ERROR: No Moho install found there."
+    echo "Pass the Moho app as an argument, for example:"
+    echo "  ./install-plugin.sh \"/Applications/Moho 14/Moho Pro.app\""
     exit 1
 fi
 
-echo "Creating directories..."
-mkdir -p "$DEST/moho_mcp/tools"
+# Moho runs every .lua file under Scripts/Menu at startup as a menu script,
+# so only MohoMCP_Server.lua goes there. Library modules go in Scripts/Modules.
+echo "Removing library files left in the Menu folder by older versions..."
+rm -rf "$MENU_DEST/moho_mcp" "$MENU_DEST/json.lua"
 
-echo "Copying main script and JSON library..."
-cp -f "$SRC/MohoMCP_Server.lua" "$DEST/MohoMCP_Server.lua"
-cp -f "$SRC/json.lua" "$DEST/json.lua"
-
-echo "Copying core modules..."
-cp -f "$SRC/moho_mcp/server.lua" "$DEST/moho_mcp/server.lua"
-cp -f "$SRC/moho_mcp/protocol.lua" "$DEST/moho_mcp/protocol.lua"
-cp -f "$SRC/moho_mcp/validator.lua" "$DEST/moho_mcp/validator.lua"
-
-echo "Copying tool handlers..."
-cp -f "$SRC/moho_mcp/tools/document.lua" "$DEST/moho_mcp/tools/document.lua"
-cp -f "$SRC/moho_mcp/tools/layer.lua" "$DEST/moho_mcp/tools/layer.lua"
-cp -f "$SRC/moho_mcp/tools/bone.lua" "$DEST/moho_mcp/tools/bone.lua"
-cp -f "$SRC/moho_mcp/tools/animation.lua" "$DEST/moho_mcp/tools/animation.lua"
-cp -f "$SRC/moho_mcp/tools/mesh.lua" "$DEST/moho_mcp/tools/mesh.lua"
-cp -f "$SRC/moho_mcp/tools/batch.lua" "$DEST/moho_mcp/tools/batch.lua"
-
-echo ""
-echo "Copying MohoMCP Poller tool script..."
-cp -f "$SRC/MohoMCP_Poller.lua" "$TOOL_DEST/MohoMCP_Poller.lua"
+echo "Copying files..."
+mkdir -p "$MENU_DEST" "$MODULE_DEST" &&
+cp -f "$SRC/MohoMCP_Server.lua" "$MENU_DEST/" &&
+cp -Rf "$SRC/moho_mcp/." "$MODULE_DEST/" &&
+cp -f "$SRC/MohoMCP_Poller.lua" "$TOOL_DEST/" || { echo "ERROR: Copying failed."; exit 1; }
 
 echo "Registering tool in tool list..."
 if ! grep -q "MohoMCP_Poller" "$TOOL_DEST/_tool_list.txt" 2>/dev/null; then
@@ -49,7 +42,7 @@ fi
 
 echo ""
 echo "Verifying installation..."
-find "$DEST" -type f
+find "$MENU_DEST" "$MODULE_DEST" -type f
 echo ""
 ls -la "$TOOL_DEST/MohoMCP_Poller.lua"
 

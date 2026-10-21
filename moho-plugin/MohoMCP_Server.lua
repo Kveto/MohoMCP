@@ -42,7 +42,7 @@ end
 -- Helpers
 -- **************************************************
 
---- Determine the directory this script lives in so we can load siblings.
+--- Determine the directory this script lives in so we can find Scripts/Modules.
 local function getScriptDir()
 	local info = debug.getinfo(1, "S")
 	local path = info.source
@@ -73,10 +73,12 @@ local function loadModules(baseDir)
 		return true
 	end
 
-	setupPackagePath(baseDir)
+	-- Modules live in Scripts/Modules, not next to this script: Moho runs every
+	-- .lua file under Scripts/Menu as a menu script at startup.
+	setupPackagePath(baseDir .. "../../Modules/")
 
 	-- Load the JSON library and make it globally available
-	local jsonOk, jsonMod = pcall(require, "json")
+	local jsonOk, jsonMod = pcall(require, "moho_mcp.json")
 	if not jsonOk then
 		print("[MohoMCP] ERROR: Failed to load json.lua: " .. tostring(jsonMod))
 		return false

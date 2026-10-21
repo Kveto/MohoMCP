@@ -30,26 +30,30 @@ chmod +x install-plugin.sh
 
 The scripts automatically copy all files to the correct locations and register the poller tool.
 
+On Windows the script finds Moho wherever it is installed. If it can't, or you have several Moho versions, pass the install folder: `install-plugin.bat "D:\Apps\Moho 14"`. On macOS, pass the app if it isn't at the default location: `./install-plugin.sh "/path/to/Moho Pro.app"`. If Moho is under `C:\Program Files`, run the script as Administrator.
+
 ### Option B: Manual installation
 
 #### Locate Your MOHO Scripts Directory
 
-| Platform | Menu scripts path | Tool scripts path |
-|----------|-------------------|-------------------|
-| Windows (default) | `C:\Program Files\Moho 14\Resources\Support\Scripts\Menu\` | `C:\Program Files\Moho 14\Resources\Support\Scripts\Tool\` |
-| macOS (default) | `/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Menu/` | `/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Tool/` |
-| Windows (user scripts) | `C:\Users\<username>\Documents\Moho\scripts\menu\` | — |
-| macOS (user scripts) | `~/Library/Application Support/Moho/scripts/menu/` | — |
+| Platform | Scripts directory |
+|----------|-------------------|
+| Windows (default) | `C:\Program Files\Moho 14\Resources\Support\Scripts\` |
+| Windows (other install location) | `<Moho folder>\Resources\Support\Scripts\` |
+| macOS (default) | `/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/` |
 
 #### Copy files
 
-Create a `MohoMCP/` folder inside the Menu scripts directory, then copy:
+> **Only copy the files listed here.** MOHO runs every `.lua` file under `Scripts/Menu/` as a menu script at startup. Library modules or the `tests/` folder placed there cause script errors, and `tests/run_tests.lua` can stop MOHO from starting.
 
 ```
-MohoMCP/
-├── MohoMCP_Server.lua          <- Main menu script & DrawMe hooks
-├── json.lua                    <- JSON encoder/decoder library
-└── moho_mcp/                   <- Module directory
+Scripts/
+├── Menu/MohoMCP/
+│   └── MohoMCP_Server.lua      <- Main menu script & DrawMe hooks
+├── Tool/
+│   └── MohoMCP_Poller.lua      <- Poller tool
+└── Modules/moho_mcp/           <- Copy the whole moho-plugin/moho_mcp/ folder
+    ├── json.lua                <- JSON encoder/decoder library
     ├── server.lua              <- File-based IPC server core
     ├── protocol.lua            <- JSON-RPC 2.0 protocol handling
     ├── validator.lua           <- Method allow-list & parameter validation
@@ -62,11 +66,13 @@ MohoMCP/
         └── batch.lua
 ```
 
-Also copy the poller tool to the Tool scripts directory:
+Then register the poller by adding this line (tab-separated) to `Scripts/Tool/_tool_list.txt`:
 
 ```
-MohoMCP_Poller.lua  ->  <Tool scripts path>/MohoMCP_Poller.lua
+tool	MohoMCP_Poller	...
 ```
+
+If you installed an older version, delete `Menu/MohoMCP/json.lua` and `Menu/MohoMCP/moho_mcp/`.
 
 ### Verify Installation
 

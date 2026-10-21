@@ -160,9 +160,9 @@ end
 
 print(string.rep("=", 60))
 
--- Return non-zero exit code on failure.
-if failed > 0 then
-    os.exit(1)
-else
-    os.exit(0)
+-- Return non-zero exit code on failure. Only under the standalone interpreter
+-- (which sets `arg`): if this file ends up in Moho's Scripts folder, os.exit
+-- would quit Moho itself.
+if arg then
+    os.exit(failed > 0 and 1 or 0)
 end

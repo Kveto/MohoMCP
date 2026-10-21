@@ -96,17 +96,13 @@ An MCP (Model Context Protocol) server for **Moho Pro 14** — enabling AI assis
 
 ### 1. Install the MOHO Plugin
 
-Copy the `moho-plugin/` contents into MOHO's scripts folder, or use the provided install scripts:
+Use the provided install scripts:
 
-**Windows:** Run `install-plugin.bat` (or copy manually to `C:\Program Files\Moho 14\Resources\Support\Scripts\Menu\`)
+**Windows:** Run `install-plugin.bat`. It finds Moho wherever it's installed. If it can't, run `install-plugin.bat "D:\path\to\Moho 14"`.
 
-**macOS:** Run `chmod +x install-plugin.sh && ./install-plugin.sh` (or copy manually to `/Applications/Moho 14/Moho Pro.app/Contents/Resources/Support/Scripts/Menu/`)
+**macOS:** Run `chmod +x install-plugin.sh && ./install-plugin.sh`. If Moho isn't in `/Applications/Moho 14/`, use `./install-plugin.sh "/path/to/Moho Pro.app"`.
 
-Files to copy:
-- `MohoMCP_Server.lua`
-- `MohoMCP_Poller.lua`
-- `json.lua`
-- `moho_mcp/` (entire directory)
+Don't copy `moho-plugin/` into MOHO's `Scripts/Menu/` folder as a whole. MOHO runs every `.lua` file there at startup. For a manual install, see [docs/installation.md](docs/installation.md#option-b-manual-installation).
 
 ### 2. Build the Bridge Server
 
@@ -227,8 +223,8 @@ MohoMCP/
 ├── moho-plugin/               # Lua Plugin for MOHO 14
 │   ├── MohoMCP_Server.lua     # Menu script & DrawMe hooks
 │   ├── MohoMCP_Poller.lua     # Polling utilities
-│   ├── json.lua               # JSON library
-│   └── moho_mcp/
+│   └── moho_mcp/              # Installed to Scripts/Modules/moho_mcp/
+│       ├── json.lua           # JSON library
 │       ├── server.lua         # File-based IPC server
 │       ├── protocol.lua       # JSON-RPC 2.0 protocol
 │       ├── validator.lua      # Method allow-list & validation
