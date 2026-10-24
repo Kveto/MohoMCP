@@ -199,7 +199,7 @@ MOHO only processes Lua callbacks during UI repaints. A background process perio
 cd bridge
 npm install
 npm run dev      # Watch mode — recompiles on changes
-npm test         # Run test suite (61 tests)
+npm test         # Run bridge and Lua handler tests
 npm run test:watch
 ```
 

@@ -126,7 +126,7 @@ function document.getInfo(moho, params)
 
     -- Duration in seconds
     if result.fps > 0 then
-        result.duration = (result.endFrame - result.startFrame) / result.fps
+        result.duration = (result.endFrame - result.startFrame + 1) / result.fps
     else
         result.duration = 0
     end
@@ -134,6 +134,21 @@ function document.getInfo(moho, params)
     -- Layer count summary
     local tlOk, tl = pcall(function() return doc:TotalLayerCount() end)
     result.totalLayers = tlOk and tl or 0
+    if not tlOk then
+        local function countLayers(container)
+            local n = 0
+            for i = 0, container:CountLayers() - 1 do
+                local layer = container:Layer(i)
+                n = n + 1
+                if layer:IsGroupType() then
+                    n = n + countLayers(moho:LayerAsGroup(layer))
+                end
+            end
+            return n
+        end
+        local countOk, total = pcall(countLayers, doc)
+        if countOk then result.totalLayers = total end
+    end
 
     local clOk, cl = pcall(function() return doc:CountLayers() end)
     result.topLevelLayers = clOk and cl or 0

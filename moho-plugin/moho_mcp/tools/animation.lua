@@ -176,7 +176,7 @@ function animation.getKeyframes(moho, params)
         end
 
         -- Interpolation mode
-        local iOk, interp = pcall(function() return channel:GetKeyInterpMode(i) end)
+        local iOk, interp = pcall(function() return channel:GetKeyInterpMode(entry.frame) end)
         if iOk and interp ~= nil then
             entry.interpolation = interpName(interp)
         else

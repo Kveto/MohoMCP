@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "fengari": "^0.1.5",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   },

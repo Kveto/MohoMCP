@@ -11,6 +11,7 @@ local validator = nil
 
 -- Server state
 local isRunning = false
+local isPolling = false
 local ipcDir = ""
 
 -- Tool handler registry: method name -> function(moho, params) -> result, err
@@ -297,7 +298,7 @@ end
 -- Call this from the Run or OnIdle callback.
 -- Processes at most a few requests per call to avoid blocking the UI.
 -- @param moho  The MOHO ScriptInterface object
-function server.poll(moho)
+local function pollRequests(moho)
     if not isRunning then
         return
     end
@@ -337,6 +338,16 @@ function server.poll(moho)
             processed = processed + 1
         end
     end
+end
+
+-- Rendering and UI updates can synchronously invoke DrawMe/IsEnabled again.
+-- Never dispatch the same in-flight request from a nested callback.
+function server.poll(moho)
+    if not isRunning or isPolling then return end
+    isPolling = true
+    local ok, err = pcall(pollRequests, moho)
+    isPolling = false
+    if not ok then error(err) end
 end
 
 --- Get server info for status display.

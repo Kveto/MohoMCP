@@ -16,6 +16,7 @@ import { spawn, ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { config } from "./config.js";
 
 let keepAliveProcess: ChildProcess | null = null;
 let scriptPath: string | null = null;
@@ -80,21 +81,22 @@ while ($true) {
 }
 `;
 
-// AppleScript that forces MOHO viewport repaints by nudging the app.
-// Sends a tiny mouse-move event to the frontmost Moho window to trigger DrawMe.
+// osascript does not dispatch the idle handler of a stay-open applet. Keep an
+// explicit loop alive, and activate Moho only while an IPC request is pending.
+// Pass the directory as an argument instead of interpolating paths into code.
 const APPLESCRIPT_KEEPALIVE = `
-on idle
-  try
-    tell application "System Events"
-      if exists process "Moho" then
-        tell process "Moho"
-          set frontmost to true
-        end tell
+on run argv
+  set ipcDirectory to item 1 of argv
+  repeat
+    try
+      set pendingRequest to do shell script "/usr/bin/find " & quoted form of ipcDirectory & " -maxdepth 1 -name 'req_*.json' -print -quit"
+      if pendingRequest is not "" then
+        tell application "Moho" to activate
       end if
-    end tell
-  end try
-  return 0.25
-end idle
+    end try
+    delay 0.25
+  end repeat
+end run
 `;
 
 /**
@@ -112,7 +114,7 @@ export function startKeepAlive(): void {
   }
 
   // Write the script to the IPC temp directory
-  const dir = path.join(os.tmpdir(), "moho-mcp");
+  const dir = config.moho.ipcDir;
   try {
     fs.mkdirSync(dir, { recursive: true });
   } catch {
@@ -139,7 +141,7 @@ export function startKeepAlive(): void {
 
     keepAliveProcess = spawn(
       "osascript",
-      [scriptPath],
+      [scriptPath, dir],
       {
         stdio: "ignore",
         detached: false,

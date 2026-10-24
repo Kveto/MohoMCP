@@ -4,6 +4,12 @@ import path from "node:path";
 import os from "node:os";
 import { MohoClient } from "../moho-client.js";
 
+// File-IPC tests must not launch desktop automation on the developer's machine.
+vi.mock("../keep-alive.js", () => ({
+  startKeepAlive: vi.fn(),
+  stopKeepAlive: vi.fn(),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

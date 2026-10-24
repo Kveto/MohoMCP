@@ -158,6 +158,10 @@ A background keep-alive process periodically forces MOHO viewport repaints (~4 H
 - **Windows:** Hidden PowerShell process calling Win32 `RedrawWindow()`
 - **macOS:** AppleScript process nudging the Moho application
 
+The macOS helper runs an explicit loop under `osascript` and only activates
+Moho while request files are pending. It uses the bridge's configured IPC
+directory; disconnecting stops the helper and removes its script.
+
 ## Configuration
 
 ### Environment Variables

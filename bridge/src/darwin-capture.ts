@@ -16,22 +16,23 @@ const execFileAsync = promisify(execFile);
 async function getMohoWindowId(): Promise<number> {
   // Use CoreGraphics window list to find Moho's window
   const script = `
-    ObjC.import('CoreGraphics');
-    ObjC.import('Foundation');
-    const windows = $.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly, $.kCGNullWindowID);
-    const count = $.CFArrayGetCount(windows);
-    for (let i = 0; i < count; i++) {
-      const win = ObjC.castRefToObject($.CFArrayGetValueAtIndex(windows, i));
-      const owner = ObjC.unwrap(win.valueForKey('kCGWindowOwnerName'));
-      if (owner && owner.match(/Moho/i)) {
-        const layer = ObjC.unwrap(win.valueForKey('kCGWindowLayer'));
-        if (layer === 0) {
-          const wid = ObjC.unwrap(win.valueForKey('kCGWindowNumber'));
-          wid;
-          break;
+    (() => {
+      ObjC.import('CoreGraphics');
+      ObjC.import('Foundation');
+      const windows = $.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly, $.kCGNullWindowID);
+      const count = $.CFArrayGetCount(windows);
+      for (let i = 0; i < count; i++) {
+        const win = ObjC.castRefToObject($.CFArrayGetValueAtIndex(windows, i));
+        const owner = ObjC.unwrap(win.valueForKey('kCGWindowOwnerName'));
+        if (owner && owner.match(/Moho/i)) {
+          const layer = ObjC.unwrap(win.valueForKey('kCGWindowLayer'));
+          if (layer === 0) {
+            return ObjC.unwrap(win.valueForKey('kCGWindowNumber'));
+          }
         }
       }
-    }
+      throw new Error("No on-screen Moho window found");
+    })();
   `;
 
   const { stdout } = await execFileAsync(
